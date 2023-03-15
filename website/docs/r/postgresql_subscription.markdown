@@ -29,6 +29,8 @@ resource "postgresql_subscription" "subscription" {
 - `database` - (Optional) Which database to create the subscription on. Defaults to provider database.
 - `create_slot` - (Optional) Specifies whether the command should create the replication slot on the publisher. Default behavior is true
 - `slot_name` - (Optional) Name of the replication slot to use. The default behavior is to use the name of the subscription for the slot name
+- `streaming` - (Optional) Specifies whether to enable streaming of in-progress transactions for this subscription
+- `synchronous_commit` - (Optional) The synchronous commit mode, one of 'off', 'local', 'remote_write', 'on' or 'remote_apply'
 
 ## Postgres documentation
 - https://www.postgresql.org/docs/current/sql-createsubscription.html
