@@ -63,6 +63,20 @@ func resourcePostgreSQLSubscription() *schema.Resource {
 				Description:  "Name of the replication slot to use. The default behavior is to use the name of the subscription for the slot name",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			"streaming": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     false,
+				Description: "Specifies whether to enable streaming of in-progress transactions for this subscription",
+			},
+			"synchronous_commit": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Description:  "The synchronous commit mode, one of 'off', 'local', 'remote_write', 'on' or 'remote_apply'",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -170,6 +184,14 @@ func resourcePostgreSQLSubscriptionReadImpl(db *DBConnection, d *schema.Resource
 	_, okSlotName := d.GetOk("slot_name")
 	if okSlotName {
 		d.Set("slot_name", slotName)
+	}
+	streaming, okStreaming := d.GetOkExists("streaming")
+	if okStreaming {
+		d.Set("streaming", streaming.(bool))
+	}
+	synchronousCommit, okSynchronousCommit := d.GetOk("synchronous_commit")
+	if okSynchronousCommit {
+		d.Set("synchronous_commit", synchronousCommit)
 	}
 
 	return nil
@@ -312,8 +334,10 @@ func getOptionalParameters(d *schema.ResourceData) string {
 
 	createSlot, okCreate := d.GetOkExists("create_slot") //nolint:staticcheck
 	slotName, okName := d.GetOk("slot_name")
+	streaming, okStreaming := d.GetOkExists("streaming")
+	synchronousCommit, okSynchronousCommit := d.GetOk("synchronous_commit")
 
-	if !okCreate && !okName {
+	if !(okCreate || okName || okStreaming || okSynchronousCommit) {
 		// use default behavior, no WITH statement
 		return ""
 	}
@@ -324,6 +348,12 @@ func getOptionalParameters(d *schema.ResourceData) string {
 	}
 	if okName {
 		params = append(params, fmt.Sprintf("%s = %s", "slot_name", pq.QuoteLiteral(slotName.(string))))
+	}
+	if okStreaming {
+		params = append(params, fmt.Sprintf("%s = %t", "streaming", streaming.(bool)))
+	}
+	if okSynchronousCommit {
+		params = append(params, fmt.Sprintf("%s = %s", "synchronous_commit", pq.QuoteLiteral(synchronousCommit.(string))))
 	}
 
 	returnValue = fmt.Sprintf(parameterSQLTemplate, strings.Join(params, ", "))
