@@ -1,4 +1,10 @@
-## 1.18.0 (November 26)
+## 1.19.0 (March 15, 2023)
+
+* First release of forked provider
+
+* Added `streaming` and `synchronous_commit` arguments to `postgresql_subscription` resource
+
+## 1.18.0 (November 26, 2022)
 
 * **New resource**: `postgresql_server` and `postgresql_user_mapping` - @fabiopaiva
   [#220](https://github.com/cyrilgdn/terraform-provider-postgresql/pull/220)
